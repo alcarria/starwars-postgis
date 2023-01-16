@@ -3,7 +3,59 @@
 <% include header %>
 
   <body>
-  
+    <style>
+      #map { height: 600px; width: 1200px;  }
+
+    </style>
+
+    <script type="text/javascript" src="javascripts/randompoints.js"></script>
+
+    <script>
+ $( document ).ready(function() {     
+
+     
+        $('#registrar').on('submit', function (event) {        
+        event.preventDefault();        
+        var randomGeoPoints = generateRandomPoints({ 'lat': 40.416, 'lng': -3.703 }, 5000, 1);
+        randomGeoPoints = generateRandomPoints(randomGeoPoints[0], 1000, 5);       
+        url = $(this).attr("action");
+        var postData = $(this).serializeArray();
+        postData.push({ name: 'ruta', value: JSON.stringify(randomGeoPoints) });
+        $.post(url, postData, function () { });
+      });
+
+
+      var map = L.map('map').setView([40.43, -3.71], 13);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map)
+
+
+var myStyle = {
+    "color": "#0000ff",
+    "weight": 4,
+    "opacity": 0.65
+};
+
+$.getJSON("/geojson", function(data) {
+    L.geoJson(data, {
+        style: myStyle,
+        onEachFeature: function(feature, layer){ 
+          layer.bindPopup("<strong>"+feature.properties.nombre+"</strong><br/>Fuerza: "+feature.properties.fuerza);
+        }
+    }).addTo(map);
+});
+
+});
+
+
+
+
+      
+
+    </script>
+
 
     <h1>
       <%= title %>
@@ -81,6 +133,8 @@
 
     <a href="/xml" target="blank"><button class="btn btn-info">Obtener XML</button></a>
     </p>
+
+    <div id="map"></div>
 
 
     <% include footer %>
