@@ -1,2 +1,2 @@
-var postgressPass = "postgress"
+var postgressPass = "postgres"
 module.exports = postgressPass;
