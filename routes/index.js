@@ -2,17 +2,21 @@ var express = require('express');
 var router = express.Router();
 var o2x = require('object-to-xml');
 
-const pgp = require('pg-promise')(/* options */)
-const db = pgp('postgres://postgres:postgres@localhost:5432/starwars')
+const db = require("../db.js")
 
-
+function isLoggedIn (req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/', isLoggedIn, function (req, res, next) {
   db.any('SELECT id, nombre, fuerza, faccion FROM personajes ORDER BY id ASC')
     .then((personajes) => {
-      console.log('DATA:', personajes);      
-      res.render('index', { title: 'Starwars page', personajes});
+      console.log('DATA:', personajes);
+      res.render('index', { title: 'Starwars page', personajes, user: req.user });
     })
     .catch((error) => {
       console.log('ERROR:', error);
@@ -20,11 +24,11 @@ router.get('/', function (req, res, next) {
     })
 });
 
-router.post('/', function (req, res, next) { 
+router.post('/', function (req, res, next) {
   //ST_SetSRID(ST_MakeLine(ARRAY[ST_Point(-3.7211 40.4464),ST_Point(-3.7092 40.44020)]), 4326)
   var spatialQuery = "ST_SetSRID(ST_MakeLine(ARRAY[";
   for (punto of JSON.parse(req.body.ruta)) {
-    spatialQuery = spatialQuery + "ST_Point("+punto.lng+","+punto.lat+"),";
+    spatialQuery = spatialQuery + "ST_Point(" + punto.lng + "," + punto.lat + "),";
   }
   spatialQuery = spatialQuery.slice(0, -1) + "]), 4326)";
   console.log(spatialQuery);
